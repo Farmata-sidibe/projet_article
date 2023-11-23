@@ -15,14 +15,21 @@ use App\Form\ArticleType;
 class ArticleController extends AbstractController
 {
     #[Route('/', name: 'list_article')]
-    public function index(ManagerRegistry $doctrine): Response
+    public function index(Request $request,ManagerRegistry $doctrine): Response
     {
         $em = $doctrine->getManager();
 
         $articles = $em->getRepository(Article::class)->findAll();
 
+        $session = $request->getSession();
+        $notification = $session->get('notification');
+        $type_notif = $session->get('type_notif');
+
         return $this->render('article/index.html.twig', [
             'articles' => $articles,
+            'notification' => $notification,
+            'type_notif' => $type_notif,
+
         ]);
     }
 
@@ -47,6 +54,10 @@ class ArticleController extends AbstractController
     
                 $em->persist($article);
                 $em->flush();
+
+                $session = $request->getSession();
+                $session->set('notification', 'Article modifié avec succés');
+                $session->set('type_notif', 'alert-success');
     
                 return $this->redirectToRoute('list_article');
             }
@@ -70,6 +81,27 @@ class ArticleController extends AbstractController
         ]);
        
     }
+    #[Route('/article/delete-article/{id_article}', name: 'delete_article')]
+    public function deleteArticle(Request $request,$id_article,ManagerRegistry $doctrine): Response
+    {
+        $em = $doctrine->getManager();
+        $article = $em->getRepository(Article::class)->find($id_article);
+
+        $em->remove($article);
+        $em->flush();
+    
+
+        $session = $request->getSession();
+        $session->set('notification', 'Article a bien été supprimé');
+        $session->set('type_notif', 'alert-danger');
+        return $this->redirectToRoute('list_article');
+
+        return $this->render('article/index.html.twig', [
+            'article' => $article
+        ]);
+       
+    }
+
     #[Route('/article-add', name: 'add_article')]
     public function addArticle(Request $request,ManagerRegistry $doctrine): Response
     {
@@ -87,6 +119,11 @@ class ArticleController extends AbstractController
 
             $em->persist($article);
             $em->flush();
+
+            $session = $request->getSession();
+            $session->set('notification', 'Article ajouté avec succés');
+            $session->set('type_notif', 'alert-success');
+
 
             return $this->redirectToRoute('list_article');
         }

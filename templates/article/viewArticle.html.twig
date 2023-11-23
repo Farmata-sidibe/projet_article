@@ -7,6 +7,8 @@
     <a href="{{ path('list_article') }}" class="btn btn-light h-75">List</a>
     <h3 class="pb-3 mb-4 font-italic border-bottom text-border">{{article.title}}</h3>
     <p class="card-text"> {{ article.body|raw }} </p>
+    <a href="{{ path('delete_article', {id_article: article.id}) }}" class="btn btn-danger h-75">Supprimer</a>
+
 
     
 
