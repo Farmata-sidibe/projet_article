@@ -17,9 +17,9 @@ class ArticleController extends AbstractController
     #[Route('/', name: 'list_article')]
     public function index(ManagerRegistry $doctrine): Response
     {
-        $en = $doctrine->getManager();
+        $em = $doctrine->getManager();
 
-        $articles = $en->getRepository(Article::class)->findAll();
+        $articles = $em->getRepository(Article::class)->findAll();
 
         return $this->render('article/index.html.twig', [
             'articles' => $articles,
@@ -27,16 +27,43 @@ class ArticleController extends AbstractController
     }
 
     #[Route('/article/edit/{id_article}', name: 'edit_article')]
-    public function editArticle($id_article): Response
+    public function editArticle($id_article,ManagerRegistry $doctrine,Request $request): Response
     {
-       return $this->render('article/index.html.twig');
+        $em = $doctrine->getManager();
+        $article = $em->getRepository(Article::class)->find($id_article);
+
+            $article->setTitle($article->getTitle());
+            $article->setBody($article->getBody());
+
+
+            $form = $this->createForm(ArticleType::class, $article);
+            $form->handleRequest($request);
+
+            if($form->isSubmitted() && $form->isValid()){
+                $article = $form->getData();
+                
+                $article->setTitle($article->getTitle());
+                $article->setBody(nl2br($article->getBody()));
+    
+                $em->persist($article);
+                $em->flush();
+    
+                return $this->redirectToRoute('list_article');
+            }
+
+        
+       return $this->render('article/editArticle.html.twig', [
+        'form' => $form->createView(),
+        'article' => $article
+
+       ]);
     }
 
     #[Route('/article/{id_article}', name: 'view_article')]
     public function viewArticle($id_article,ManagerRegistry $doctrine): Response
     {
-        $en = $doctrine->getManager();
-        $article = $en->getRepository(Article::class)->find($id_article);
+        $em = $doctrine->getManager();
+        $article = $em->getRepository(Article::class)->find($id_article);
 
         return $this->render('article/viewArticle.html.twig', [
             'article' => $article,
@@ -46,7 +73,7 @@ class ArticleController extends AbstractController
     #[Route('/article-add', name: 'add_article')]
     public function addArticle(Request $request,ManagerRegistry $doctrine): Response
     {
-        $en = $doctrine->getManager();
+        $em = $doctrine->getManager();
 
         $article = new Article();
         $form = $this->createForm(ArticleType::class, $article);
@@ -58,8 +85,8 @@ class ArticleController extends AbstractController
 
             $article->setBody(nl2br($article->getBody()));
 
-            $en->persist($article);
-            $en->flush();
+            $em->persist($article);
+            $em->flush();
 
             return $this->redirectToRoute('list_article');
         }

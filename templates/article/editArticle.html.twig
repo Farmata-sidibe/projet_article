@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier l'article {{article.title}}{% endblock %}
+
+{% block body %}
+ <div class="container">
+    <h1>Modifions l'article : {{article.title}}</h1>
+    <a href="{{ path('list_article') }}" class="btn btn-light h-75">List</a>
+   <div class="">
+    {{ form(form) }}
+    </div>
+
+    </div>
+    
+
+
+{% endblock %}
