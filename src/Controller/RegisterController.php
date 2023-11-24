@@ -10,34 +10,50 @@ use Symfony\Component\Routing\Annotation\Route;
 
 use App\Entity\User;
 use App\Form\RegisterType;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Doctrine\Persistence\ManagerRegistry;
 
 class RegisterController extends AbstractController
 {
     #[Route('/register', name: 'app_register')]
-    public function index(Request $request, ManagerRegistry $doctrine): Response
+    public function index(Request $request, ManagerRegistry $doctrine,UserPasswordHasherInterface $passwordHasher): Response
     {
         $em = $doctrine->getManager();
-        
         $user = new User();
         $form = $this->createForm(RegisterType::class, $user);
 
         $form->handleRequest($request);
 
+        $session = $request->getSession();
+        $session->set('notification', null);
+        $session->set('type_notif', null);
+        
+
         if($form->isSubmitted() && $form->isValid()){
+
             $user = $form->getData();
 
-            $user->setFirstname($user->getFirstname());
-            $user->setEmail($user->getEmail());
-            $user->setPassword($user->getPassword());
+            $userExist = $em->getRepository(User::class)->findOneBy(['email' => $user->getEmail()]);
 
-            $em->persist($user);
-            $em->flush();
+            if($userExist){
+                $session = $request->getSession();
+                $session->set('notification', "L'utilisateur éxiste déjà");
+                $session->set('type_notif', "alert-danger");
+            }else{
+                $hashedPassword = $passwordHasher->hashPassword(
+                    $user,
+                    $user->getPassword()
+                );
+                $user->setPassword($hashedPassword);
 
-            $session = $request->getSession();
-            $session->set('notification', 'Bravo! Vous étes bien inscrit');
-            $session->set('type_notif', 'alert-success');
-            
+                $em->persist($user);
+                $em->flush();
+
+                $session = $request->getSession();
+                $session->set('notification', "Utilisateur crée avec succès");
+                $session->set('type_notif', "alert-success");                
+            }
+
             return $this->redirectToRoute('list_article');
         }
 

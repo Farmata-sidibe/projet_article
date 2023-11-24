@@ -3,12 +3,21 @@
 {% block title %}Hello ArticleController!{% endblock %}
 
 {% block body %}
+{% if is_granted('ROLE_USER') %}
 {% if notification is not null %}
     <div class='alert {{type_notif}}'> {{notification}} </div>
 {% endif %}
 {{ app.session.set('notification', null) }}
 
  <div class="container">
+    <div class="d-flex justify-content-between">
+        {% if is_granted('ROLE_USER') %}
+            <a href=" {{ path('app_logout') }} " class="btn btn-danger">Se déconnecter</a>
+        {% else %}
+            <a href=" {{ path('app_register') }} " class="btn btn-primary">S'inscrire</a>
+            <a href=" {{ path('app_login') }} " class="btn btn-success">Se connecter</a>
+        {% endif %}
+    </div>
     <div class="d-flex justify-content-between">
         <h1>Articles</h1>
         <a href="{{ path('add_article') }}" class="btn btn-success h-75">Ajouter</a>
@@ -37,6 +46,10 @@
         
     </div>
     
+{% else %}
+    <a href=" {{ path('app_register') }} " class="btn btn-primary">S'inscrire</a>
+    <a href=" {{ path('app_login') }} " class="btn btn-success">Se connecter</a>
 
+{% endif %}
 
 {% endblock %}

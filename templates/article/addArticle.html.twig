@@ -3,6 +3,8 @@
 {% block title %}Ajouter un article{% endblock %}
 
 {% block body %}
+{% if is_granted('ROLE_USER') %}
+
  <div class="container">
     <h1>Ajouter un article</h1>
     <a href="{{ path('list_article') }}" class="btn btn-light h-75">List</a>
@@ -12,6 +14,10 @@
 
     </div>
     
+{% else %}
+    <a href=" {{ path('app_register') }} " class="btn btn-primary">S'inscrire</a>
+    <a href=" {{ path('app_login') }} " class="btn btn-success">Se connecter</a>
 
+{% endif %}
 
 {% endblock %}
